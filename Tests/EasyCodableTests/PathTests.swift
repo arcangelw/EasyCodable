@@ -20,10 +20,6 @@ final class PathTests: XCTestCase {
         XCTAssertEqual(testInt.makePathComponent(), PathComponent.index(1337))
 
         XCTAssertEqualComponents(
-            Path.root,
-            [[]]
-        )
-        XCTAssertEqualComponents(
             Path("foo"),
             [[.key("foo")]]
         )
@@ -78,5 +74,5 @@ final class PathTests: XCTestCase {
 }
 
 private func XCTAssertEqualComponents(_ path: Path, _ components: [[PathComponent]], file: StaticString = #file, line: UInt = #line) {
-    XCTAssertEqual(path.components, components, file: file, line: line)
+    XCTAssertEqual(path.components(options: []), components, file: file, line: line)
 }

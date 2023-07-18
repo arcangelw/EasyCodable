@@ -1,8 +1,10 @@
 /// https://github.com/Flight-School/AnyCodable.git
 
 #if canImport(Foundation)
-    import Foundation
+import Foundation
 #endif
+
+// swiftlint:disable cyclomatic_complexity line_length
 
 /**
  A type-erased `Decodable` value.
@@ -33,7 +35,8 @@
      let decoder = JSONDecoder()
      let dictionary = try! decoder.decode([String: AnyDecodable].self, from: json)
  */
-@frozen public struct AnyDecodable: Decodable {
+@frozen
+public struct AnyDecodable: Decodable {
     public let value: Any
 
     public init<T>(_ value: T?) {
@@ -55,9 +58,9 @@ extension _AnyDecodable {
 
         if container.decodeNil() {
             #if canImport(Foundation)
-                self.init(NSNull())
+            self.init(NSNull())
             #else
-                self.init(Self?.none)
+            self.init(Self?.none)
             #endif
         } else if let bool = try? container.decode(Bool.self) {
             self.init(bool)
@@ -83,8 +86,8 @@ extension AnyDecodable: Equatable {
     public static func == (lhs: AnyDecodable, rhs: AnyDecodable) -> Bool {
         switch (lhs.value, rhs.value) {
         #if canImport(Foundation)
-            case is (NSNull, NSNull), is (Void, Void):
-                return true
+        case is (NSNull, NSNull), is (Void, Void):
+            return true
         #endif
         case let (lhs as Bool, rhs as Bool):
             return lhs == rhs
@@ -188,3 +191,5 @@ extension AnyDecodable: Hashable {
         }
     }
 }
+
+// swiftlint:enable cyclomatic_complexity line_length

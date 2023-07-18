@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// 路径组件信息
 public enum PathComponent: Hashable, ExpressibleByStringLiteral, ExpressibleByIntegerLiteral {
     case key(String)
     case index(Int)
@@ -19,15 +20,17 @@ public enum PathComponent: Hashable, ExpressibleByStringLiteral, ExpressibleByIn
         self = .index(value)
     }
 
-    var isKeyValue: Bool {
-        switch self {
-        case .key, .index:
-            return false
+    internal var snakeCamelConvert: PathComponent {
+        if case let .key(key) = self, let key = key.snakeCamelConvert() {
+            return .key(key)
         }
+        return self
     }
 }
 
-extension PathComponent: CustomStringConvertible {
+// MARK: - CustomStringConvertible CustomDebugStringConvertible
+
+extension PathComponent: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
         switch self {
         case let .key(key):
@@ -36,8 +39,15 @@ extension PathComponent: CustomStringConvertible {
             return "index(\(index))"
         }
     }
+
+    public var debugDescription: String {
+        description
+    }
 }
 
+// MARK: - PathComponentConvertible
+
+/// 路径组件转换
 public protocol PathComponentConvertible {
     func makePathComponent() -> PathComponent
 }

@@ -7,33 +7,55 @@
 
 import Foundation
 
-public protocol EasyCodableStrategy {
-    associatedtype Value
-    func decode(from decoder: PathDecoder) throws -> Value
-}
-
-public struct EasyDecoderOptions: OptionSet {
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    public let rawValue: Int
-    public static let lossy = EasyDecoderOptions(rawValue: 1 << 0)
-}
-
 @propertyWrapper
-public struct EasyCodable<Strategy: EasyCodableStrategy> {
-    public typealias WrappedValue = Strategy.Value
+public struct EasyCodable<Value>: Codable {
+    /// 执行对象
+    var executor: Executor<Value>
 
-    public let strategy: Strategy
-
-    public var wrappedValue: WrappedValue
-
-    public init(wrappedValue: WrappedValue, strategy: Strategy) {
-        self.wrappedValue = wrappedValue
-        self.strategy = strategy
+    /// 包装值
+    public var wrappedValue: Value {
+        get {
+            return executor.storedValue!
+        }
+        set {
+            if !isKnownUniquelyReferenced(&executor) {
+                let newExecutor = Executor<Value>(unsafed: ())
+                newExecutor.transferFrom(executor)
+                executor = newExecutor
+            }
+            executor.storedValue = newValue
+        }
     }
+
+    @available(*, unavailable, message: "Provide a default value or use optional Type")
+    public init() {
+        fatalError()
+    }
+
+    /// 具体工作由KeyedDecodingContainer处理
+    public init(from _: Decoder) throws {
+        executor = .init(unsafed: ())
+    }
+
+    /// 内部处理 自动处理属性路径
+    init(unsafed _: (), inferredPath: Path? = nil) {
+        executor = .init(unsafed: (), inferredPath: inferredPath)
+    }
+
+    /// 初始化
+    /// - Parameters:
+    ///   - defaultValue: 默认值
+    ///   - executor: 执行配置
+    init(defaultValue: Value?, executor: Executor<Value>) {
+        self.executor = .init(context: executor.context, transfromer: executor.transformer)
+        self.executor.storedValue = defaultValue
+    }
+
+    /// encode 工作交给 KeyedEncodingContainer 处理
+    public func encode(to _: Encoder) throws {}
 }
+
+// MARK: - CustomStringConvertible CustomDebugStringConvertible
 
 extension EasyCodable: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
@@ -45,35 +67,41 @@ extension EasyCodable: CustomStringConvertible, CustomDebugStringConvertible {
     }
 }
 
-extension EasyCodable: Equatable where WrappedValue: Equatable {
+// MARK: - Equatable
+
+extension EasyCodable: Equatable where Value: Equatable {
     public static func == (lhs: EasyCodable, rhs: EasyCodable) -> Bool {
         lhs.wrappedValue == rhs.wrappedValue
     }
 
-    public static func == (lhs: WrappedValue, rhs: EasyCodable) -> Bool {
+    public static func == (lhs: Value, rhs: EasyCodable) -> Bool {
         lhs == rhs.wrappedValue
     }
 
-    public static func == (lhs: EasyCodable, rhs: WrappedValue) -> Bool {
+    public static func == (lhs: EasyCodable, rhs: Value) -> Bool {
         lhs.wrappedValue == rhs
     }
 }
 
-extension EasyCodable: Comparable where WrappedValue: Comparable {
+// MARK: - Comparable
+
+extension EasyCodable: Comparable where Value: Comparable {
     public static func < (lhs: EasyCodable, rhs: EasyCodable) -> Bool {
         lhs.wrappedValue < rhs.wrappedValue
     }
 
-    public static func < (lhs: WrappedValue, rhs: EasyCodable) -> Bool {
+    public static func < (lhs: Value, rhs: EasyCodable) -> Bool {
         lhs < rhs.wrappedValue
     }
 
-    public static func < (lhs: EasyCodable, rhs: WrappedValue) -> Bool {
+    public static func < (lhs: EasyCodable, rhs: Value) -> Bool {
         lhs.wrappedValue < rhs
     }
 }
 
-extension EasyCodable: Hashable where WrappedValue: Hashable {
+// MARK: - Hashable
+
+extension EasyCodable: Hashable where Value: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(wrappedValue)
     }

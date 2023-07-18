@@ -7,6 +7,10 @@
 
 import Foundation
 
+// swiftlint:disable identifier_name line_length cyclomatic_complexity
+
+// MARK: - 基础类型转换
+
 protocol _EasyBuiltInBridgeType {
     static func _transform(from object: Any) -> Self?
 }
@@ -226,3 +230,5 @@ extension Optional: _EasyBuiltInBridgeType {
         return nil
     }
 }
+
+// swiftlint:enable identifier_name line_length cyclomatic_complexity

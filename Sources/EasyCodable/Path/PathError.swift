@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// 错误信息
 public struct PathError: Swift.Error, CustomStringConvertible {
     let errorDescription: String
     let file: StaticString
@@ -30,10 +31,7 @@ public struct PathError: Swift.Error, CustomStringConvertible {
     }
 
     public var description: String {
-        let strings = [
-            errorDescription,
-            "\(file):\(line)",
-        ]
+        let strings = [errorDescription, "\(file):\(line)"]
 //        + callStackSymbols.map { "\t\($0)" }
         return strings.joined(separator: "\n")
     }

@@ -7,15 +7,18 @@
 
 import Foundation
 
+/// 通过路径编码
 public struct PathCodingKey: CodingKey, ExpressibleByStringLiteral, Comparable {
     public var stringValue: String
     public var intValue: Int?
 
-    public static func string(_ string: String) -> PathCodingKey {
+    /// key值
+    static func string(_ string: String) -> PathCodingKey {
         .init(stringValue: string)
     }
 
-    public static func index(_ index: Int) -> PathCodingKey {
+    /// 索引
+    static func index(_ index: Int) -> PathCodingKey {
         .init(intValue: index)
     }
 
